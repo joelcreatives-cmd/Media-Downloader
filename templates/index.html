@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Downloader</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1><span class="dl">&#11015;</span> Media Downloader</h1>
+        <div class="tagline">YouTube · Facebook · Instagram · TikTok · X — video &amp; images</div>
+      </div>
+      <button id="openFolder" class="ghost" title="Open the current save folder">Open folder</button>
+    </header>
+
+    {% if not ffmpeg_ok %}
+    <div class="banner warn">
+      ffmpeg was not found. HD merging, MP3 conversion and subtitle embedding may not work.
+      Install it with <code>winget install Gyan.FFmpeg</code> and restart the app.
+    </div>
+    {% endif %}
+    {% if not gallerydl_ok %}
+    <div class="banner warn">
+      gallery-dl was not found, so image downloads are disabled.
+      Install it with <code>pip install gallery-dl</code> and restart the app.
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="row">
+        <input id="url" type="text" placeholder="Paste a video, post, playlist or profile link…" autocomplete="off" />
+        <button id="fetch" class="primary">Fetch</button>
+      </div>
+      <div id="fetchMsg" class="msg"></div>
+    </div>
+
+    <div class="card save-card">
+      <label class="save-label" for="dest">Save to</label>
+      <div class="row">
+        <input id="dest" type="text" value="{{ default_dir }}" spellcheck="false" autocomplete="off" />
+        {% if browse_available %}
+        <button id="browse" class="ghost">Browse…</button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div id="preview" class="card hidden">
+      <div class="media">
+        <img id="thumb" alt="" />
+        <div class="info">
+          <div id="pvTitle" class="title"></div>
+          <div id="pvMeta" class="meta"></div>
+          <div id="pvBadge" class="badge hidden"></div>
+        </div>
+      </div>
+
+      <div class="detected">
+        <span id="detectedLabel" class="det-label"></span>
+        <a href="#" id="switchMode" class="switch hidden"></a>
+      </div>
+
+      <div class="options">
+        <div class="opt hidden" id="qualityOpt">
+          <label for="quality">Quality</label>
+          <select id="quality"></select>
+        </div>
+
+        <div class="opt hidden" id="audioOpt">
+          <label class="check">
+            <input type="checkbox" id="audioOnly" /> Audio only (MP3)
+          </label>
+        </div>
+
+        <div class="opt hidden" id="playlistOpt">
+          <label class="check">
+            <input type="checkbox" id="playlist" /> Entire playlist
+          </label>
+        </div>
+
+        <div class="opt hidden" id="subsOpt">
+          <label class="check">
+            <input type="checkbox" id="subs" /> Subtitles
+          </label>
+          <input id="subLangs" class="lang" type="text" value="en" title="Comma-separated language codes, e.g. en,es" />
+        </div>
+
+        <div class="opt hidden" id="cookiesOpt">
+          <label for="cookies">Use login from</label>
+          <select id="cookies">
+            <option value="">{% if auto_cookies %}App cookies.txt (default){% else %}No login{% endif %}</option>
+            <option value="file">Cookies.txt file…</option>
+            <option value="firefox">Firefox</option>
+            <option value="chrome">Chrome</option>
+            <option value="edge">Edge</option>
+            <option value="brave">Brave</option>
+          </select>
+          {% if auto_cookies %}<div class="cookienote">✓ Found <code>cookies.txt</code> in the app folder — used automatically.</div>{% endif %}
+        </div>
+      </div>
+
+      <button id="download" class="primary big">Download</button>
+      <div id="hint" class="hint hidden"></div>
+    </div>
+
+    <div id="progress" class="card hidden">
+      <div class="prog-head">
+        <span id="progStage">Starting…</span>
+        <span id="progItem" class="muted"></span>
+      </div>
+      <div class="bar"><div id="barFill" class="fill"></div></div>
+      <div class="prog-foot">
+        <span id="progPct">0%</span>
+        <span id="progStats" class="muted"></span>
+      </div>
+    </div>
+
+    <div id="done" class="card hidden">
+      <h3>&#10003; Done</h3>
+      <div id="savedTo" class="meta"></div>
+      <ul id="fileList"></ul>
+      <button id="openFolder2" class="primary">Open folder</button>
+    </div>
+
+    <footer>
+      <span>Powered by <a href="https://github.com/yt-dlp/yt-dlp" target="_blank" rel="noopener">yt-dlp</a>
+      + <a href="https://github.com/mikf/gallery-dl" target="_blank" rel="noopener">gallery-dl</a>
+      + ffmpeg · runs locally on your machine</span>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Virtual environment (machine-specific; recreated by run.bat)
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Bundled ffmpeg binary (~80 MB; auto-downloaded via imageio-ffmpeg on first run)
+bin/
+
+# Downloaded media (user content; auto-created on first run)
+downloads/
+
+# Browser cookies export — contains live session tokens, never commit
+cookies.txt
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
