@@ -99,6 +99,44 @@ different option in the dropdown. When it's detected, the dropdown's default rea
 These sites change constantly and actively discourage downloading. When something
 stops working, updating the engines usually helps (see below).
 
+## YouTube setup (PO token + JS runtime)
+
+Modern YouTube blocks plain yt-dlp with **“Sign in to confirm you're not a bot.”**
+Cookies and `player_client` tweaks no longer get past it on their own. The fix is
+two one-time installs that let yt-dlp prove it's a genuine client:
+
+1. **A JavaScript runtime (Deno)** — solves YouTube's JS / "n-sig" challenges:
+
+   ```powershell
+   winget install --id DenoLand.Deno -e --source winget
+   ```
+
+   (`--source winget` avoids a certificate error on the Microsoft Store source
+   that some networks/AV HTTPS-inspection setups trigger.)
+
+2. **A PO-token provider** — mints the Proof-of-Origin tokens YouTube demands. It's
+   a yt-dlp plugin (already in `requirements.txt`) plus a small Node server you
+   build once. **The server version must match the plugin version** (`1.3.1`):
+
+   ```powershell
+   git clone --single-branch --branch 1.3.1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git "$HOME\bgutil-ytdlp-pot-provider"
+   cd "$HOME\bgutil-ytdlp-pot-provider\server"
+   npm ci
+   npx tsc
+   ```
+
+   Requires [Node.js](https://nodejs.org/). The app auto-detects the built server
+   in `~/bgutil-ytdlp-pot-provider` and finds Deno automatically (even if winget
+   only added it to a future shell's PATH).
+
+Restart the app — the startup banner should read `Deno (JS): ok` and
+`PO token: ok`. If either shows **NOT FOUND / NOT SET UP**, YouTube may hit the
+bot wall; redo the matching step.
+
+> With both pieces in place you usually no longer need a YouTube `cookies.txt` for
+> ordinary public videos. Cookies still help for age-restricted or members-only
+> content.
+
 ## ffmpeg
 
 ffmpeg is required for merging HD streams, MP3 conversion, and embedding

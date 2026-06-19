@@ -111,6 +111,55 @@ FFMPEG_DIR = ensure_ffmpeg()
 
 
 # --------------------------------------------------------------------------- #
+#  YouTube bot-check bypass                                                    #
+#                                                                              #
+#  YouTube now rejects yt-dlp with "Sign in to confirm you're not a bot"       #
+#  unless it can (a) mint a Proof-of-Origin (PO) token and (b) solve JS/n-sig  #
+#  challenges. We satisfy both with:                                           #
+#    * the bgutil-ytdlp-pot-provider plugin (auto-loaded; its Node server      #
+#      lives in ~/bgutil-ytdlp-pot-provider) for PO tokens, and                #
+#    * the Deno JS runtime + yt-dlp's EJS solver (remote_components, below)    #
+#      for the JS challenges.                                                  #
+#  See README.md ("YouTube setup") for the one-time install of Deno and the    #
+#  PO-token provider.                                                          #
+# --------------------------------------------------------------------------- #
+def ensure_deno():
+    """Make the Deno binary discoverable on PATH so yt-dlp can solve YouTube's
+    JS challenges. Deno is often installed but only added to a *future* shell's
+    PATH (e.g. by winget), so we also probe its known install locations and
+    prepend the right directory to PATH for this process."""
+    import glob
+
+    if shutil.which("deno"):
+        return True
+    candidates = []
+    local = os.environ.get("LOCALAPPDATA", "")
+    if local:
+        candidates.append(os.path.join(local, "Microsoft", "WinGet", "Links", "deno.exe"))
+        candidates += glob.glob(
+            os.path.join(local, "Microsoft", "WinGet", "Packages", "DenoLand.Deno*", "deno.exe")
+        )
+    candidates.append(os.path.join(os.path.expanduser("~"), ".deno", "bin", "deno.exe"))
+    for exe in candidates:
+        if os.path.isfile(exe):
+            os.environ["PATH"] = os.path.dirname(exe) + os.pathsep + os.environ.get("PATH", "")
+            return True
+    return False
+
+
+DENO_OK = ensure_deno()
+POT_SERVER_DIR = os.path.join(os.path.expanduser("~"), "bgutil-ytdlp-pot-provider", "server")
+POT_OK = os.path.isdir(os.path.join(POT_SERVER_DIR, "build"))
+
+
+def apply_youtube_solvers(opts):
+    """Opt in to the EJS challenge-solver download that Deno needs to solve
+    YouTube's JS / n-sig challenges. (The PO-token provider is auto-loaded as a
+    yt-dlp plugin and needs no options here.) Harmless for non-YouTube URLs."""
+    opts.setdefault("remote_components", set()).add("ejs:github")
+
+
+# --------------------------------------------------------------------------- #
 #  Helpers                                                                     #
 # --------------------------------------------------------------------------- #
 def sse(obj):
@@ -397,6 +446,7 @@ def build_opts(job_id, params, base_dir):
     if FFMPEG_DIR:
         opts["ffmpeg_location"] = FFMPEG_DIR
     apply_cookies(opts, params)
+    apply_youtube_solvers(opts)
 
     if content == "audio":
         opts["format"] = "ba/b"
@@ -578,6 +628,7 @@ def api_info():
                 "noplaylist": False,
             }
             apply_cookies(opts, body)
+            apply_youtube_solvers(opts)
             with YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=False)
 
@@ -802,6 +853,8 @@ if __name__ == "__main__":
     print(f"  Default downloads: {DOWNLOAD_DIR}")
     print(f"  ffmpeg:     {'ok' if FFMPEG_DIR else 'NOT FOUND'}")
     print(f"  gallery-dl: {'ok' if GALLERYDL_OK else 'NOT INSTALLED (images disabled)'}")
+    print(f"  Deno (JS):  {'ok' if DENO_OK else 'NOT FOUND (YouTube may hit bot checks)'}")
+    print(f"  PO token:   {'ok' if POT_OK else 'NOT SET UP (YouTube may hit bot checks)'}")
     print(f"  Open: http://127.0.0.1:{PORT}")
     print("=" * 60)
     open_browser()

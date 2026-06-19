@@ -3,3 +3,6 @@ yt-dlp
 gallery-dl
 imageio-ffmpeg>=0.5
 truststore>=0.9
+# YouTube PO-token provider (yt-dlp plugin). Must stay version-matched with the
+# Node server build in ~/bgutil-ytdlp-pot-provider. See README "YouTube setup".
+bgutil-ytdlp-pot-provider==1.3.1
