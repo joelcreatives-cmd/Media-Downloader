@@ -854,7 +854,53 @@ def open_browser():
     threading.Timer(1.2, lambda: webbrowser.open(f"http://127.0.0.1:{PORT}")).start()
 
 
+def free_port(port):
+    """Terminate any previous instance still listening on `port` before we bind.
+
+    Windows allows several processes to share a port via SO_REUSEADDR, and the
+    *oldest* one keeps answering — so relaunching the app would silently keep
+    serving stale code. Clearing the port first guarantees the newest launch
+    wins, which is what "restart the app" should mean.
+    """
+    import socket
+    import time
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.settimeout(0.4)
+        if probe.connect_ex(("127.0.0.1", port)) != 0:
+            return  # nothing is listening — clean start
+
+    pids = set()
+    try:
+        if os.name == "nt":
+            out = subprocess.run(
+                ["netstat", "-ano", "-p", "TCP"], capture_output=True, text=True
+            ).stdout
+            for line in out.splitlines():
+                parts = line.split()
+                if len(parts) >= 5 and parts[3] == "LISTENING" and parts[1].endswith(f":{port}"):
+                    pids.add(parts[4])
+            for pid in pids:
+                if pid and pid != "0":
+                    subprocess.run(["taskkill", "/F", "/PID", pid], capture_output=True)
+        else:
+            out = subprocess.run(
+                ["lsof", "-ti", f"tcp:{port}", "-sTCP:LISTEN"], capture_output=True, text=True
+            ).stdout
+            for pid in out.split():
+                pids.add(pid)
+                subprocess.run(["kill", "-9", pid], capture_output=True)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[warn] Could not free port {port}: {exc}")
+        return
+
+    if pids:
+        print(f"  (stopped a previous instance already on port {port})")
+        time.sleep(0.8)  # let the OS release the socket before we bind
+
+
 if __name__ == "__main__":
+    free_port(PORT)
     print("=" * 60)
     print("  Media Downloader")
     print(f"  Default downloads: {DOWNLOAD_DIR}")
