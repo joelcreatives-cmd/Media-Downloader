@@ -397,7 +397,16 @@ select {
   user-select: none;
 }
 .opt select { width: auto; min-width: 158px; }
-.lang { width: 96px !important; padding: 9px 11px !important; }
+
+/* Subtitles: checkbox + (revealed) language field sit on one line */
+#subsOpt { flex-direction: row; align-items: center; gap: 10px; }
+.lang {
+  width: 72px !important;
+  padding: 7px 10px !important;
+  font-size: 0.85rem;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
 
 input[type="checkbox"] {
   appearance: none;

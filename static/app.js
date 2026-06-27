@@ -159,6 +159,7 @@ function applyMode() {
   $("audioOpt").classList.toggle("hidden", !isVideo);
   $("playlistOpt").classList.toggle("hidden", !state.isPlaylist);
   $("subsOpt").classList.toggle("hidden", !(isYt && isVideo));
+  $("subLangs").classList.toggle("hidden", !$("subs").checked);
   $("cookiesOpt").classList.toggle("hidden", isYt);
 
   // Let the user override the guess on social posts (e.g. mixed carousels)
@@ -430,6 +431,9 @@ $("cookies").addEventListener("change", async () => {
     setCookieFile("");
     localStorage.setItem(COOKIES_KEY, v);
   }
+});
+$("subs").addEventListener("change", () => {
+  $("subLangs").classList.toggle("hidden", !$("subs").checked);
 });
 $("switchMode").addEventListener("click", (e) => {
   e.preventDefault();

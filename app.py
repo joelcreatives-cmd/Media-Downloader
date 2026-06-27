@@ -626,6 +626,13 @@ def api_info():
                 "skip_download": True,
                 "extract_flat": "in_playlist",
                 "noplaylist": False,
+                # Only pull the first dozen items for the preview. Without this a
+                # large playlist (hundreds/thousands of videos) would page through
+                # the entire list before we could show anything — the "Fetch"
+                # spinner appears to hang. The full list is enumerated later, at
+                # download time. The true length still comes back as
+                # `playlist_count`, so the count stays accurate.
+                "playlist_items": "1-12",
             }
             apply_cookies(opts, body)
             apply_youtube_solvers(opts)
@@ -649,7 +656,7 @@ def api_info():
                         "platform": "youtube",
                         "title": info.get("title"),
                         "uploader": info.get("uploader") or info.get("channel"),
-                        "count": len(entries),
+                        "count": info.get("playlist_count") or len(entries),
                         "entries": preview,
                     }
                 )
