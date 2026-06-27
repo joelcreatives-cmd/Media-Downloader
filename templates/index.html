@@ -3,17 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Media Downloader</title>
+  <title>Media Downloader — video, audio & images</title>
+  <meta name="description" content="Download video, audio and images from YouTube, Facebook, Instagram, TikTok and X — right on your machine." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
+  <!-- Ambient animated background -->
+  <div class="aurora" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+    <div class="grid"></div>
+  </div>
+
+  <main class="app">
+    <header class="hero">
       <div class="brand">
-        <h1><span class="dl">&#11015;</span> Media Downloader</h1>
-        <div class="tagline">YouTube · Facebook · Instagram · TikTok · X — video &amp; images</div>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#ff4d6d" />
+                <stop offset="1" stop-color="#ff8a4c" />
+              </linearGradient>
+            </defs>
+            <rect width="48" height="48" rx="14" fill="url(#g)" />
+            <path d="M24 13v15m0 0 6-6m-6 6-6-6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M16 33h16" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="brand-name">Media Downloader</span>
       </div>
-      <button id="openFolder" class="ghost" title="Open the current save folder">Open folder</button>
+
+      <h1 class="headline">Download any video, audio or <span class="grad">image</span></h1>
+      <p class="sub">YouTube, Facebook, Instagram, TikTok &amp; X — videos, MP3s and full photo galleries. Paste a link and grab it. Runs entirely on your machine.</p>
     </header>
 
     {% if not ffmpeg_ok %}
@@ -29,25 +56,44 @@
     </div>
     {% endif %}
 
-    <div class="card">
-      <div class="row">
-        <input id="url" type="text" placeholder="Paste a video, post, playlist or profile link…" autocomplete="off" />
-        <button id="fetch" class="primary">Fetch</button>
+    <!-- Search / link bar -->
+    <div class="search">
+      <div class="search-field">
+        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        <input id="url" type="text" placeholder="Paste a video, post, playlist or profile link…" spellcheck="false" autocomplete="off" />
       </div>
-      <div id="fetchMsg" class="msg"></div>
+      <button id="fetch" type="button" class="btn-primary">
+        <span class="btn-label">Fetch</span>
+      </button>
     </div>
 
-    <div class="card save-card">
-      <label class="save-label" for="dest">Save to</label>
+    <div class="chips" aria-hidden="true">
+      <span class="chip"><span class="dot"></span> Video &amp; audio (MP3)</span>
+      <span class="chip"><span class="dot"></span> Images &amp; galleries</span>
+      <span class="chip"><span class="dot"></span> Playlists in bulk</span>
+    </div>
+
+    <div id="fetchMsg" class="msg"></div>
+
+    <!-- Save to -->
+    <section class="card save-card">
+      <div class="save-head">
+        <label class="field-label" for="dest">Save to</label>
+        <button id="openFolder" type="button" class="btn-link" title="Open the current save folder">Open folder ↗</button>
+      </div>
       <div class="row">
         <input id="dest" type="text" value="{{ default_dir }}" spellcheck="false" autocomplete="off" />
         {% if browse_available %}
-        <button id="browse" class="ghost">Browse…</button>
+        <button id="browse" type="button" class="btn-soft">Browse…</button>
         {% endif %}
       </div>
-    </div>
+    </section>
 
-    <div id="preview" class="card hidden">
+    <!-- Preview / options -->
+    <section id="preview" class="card hidden">
       <div class="media">
         <img id="thumb" alt="" />
         <div class="info">
@@ -101,11 +147,12 @@
         </div>
       </div>
 
-      <button id="download" class="primary big">Download</button>
+      <button id="download" type="button" class="btn-primary big">Download</button>
       <div id="hint" class="hint hidden"></div>
-    </div>
+    </section>
 
-    <div id="progress" class="card hidden">
+    <!-- Progress -->
+    <section id="progress" class="card hidden">
       <div class="prog-head">
         <span id="progStage">Starting…</span>
         <span id="progItem" class="muted"></span>
@@ -115,21 +162,21 @@
         <span id="progPct">0%</span>
         <span id="progStats" class="muted"></span>
       </div>
-    </div>
+    </section>
 
-    <div id="done" class="card hidden">
-      <h3>&#10003; Done</h3>
+    <!-- Done -->
+    <section id="done" class="card hidden">
+      <h3>Done</h3>
       <div id="savedTo" class="meta"></div>
       <ul id="fileList"></ul>
-      <button id="openFolder2" class="primary">Open folder</button>
-    </div>
+      <button id="openFolder2" type="button" class="btn-primary">Open folder</button>
+    </section>
 
-    <footer>
-      <span>Powered by <a href="https://github.com/yt-dlp/yt-dlp" target="_blank" rel="noopener">yt-dlp</a>
-      + <a href="https://github.com/mikf/gallery-dl" target="_blank" rel="noopener">gallery-dl</a>
-      + ffmpeg · runs locally on your machine</span>
+    <footer class="foot">
+      <p>Powered by yt-dlp + gallery-dl + ffmpeg · runs locally — nothing is uploaded.
+      Only download content you own or have the right to.</p>
     </footer>
-  </div>
+  </main>
 
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

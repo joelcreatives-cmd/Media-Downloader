@@ -78,6 +78,11 @@ signed in. Pick a login source from the **“Use login from”** dropdown:
 Treat that file like a password — it grants access to your logged-in session.
 Cookies expire, so re-export if downloads start failing with login errors again.
 
+> **YouTube cookies expired?** When YouTube starts failing again with *"Sign in
+> to confirm you're not a bot,"* your `cookies.txt` has gone stale. See
+> [`READ-ME-WHEN-YOUTUBE-BREAKS.txt`](READ-ME-WHEN-YOUTUBE-BREAKS.txt) in the app
+> folder for the 3-minute re-export fix (with a command to verify the new file).
+
 ### Tip: load it automatically
 
 Instead of picking the file every time, drop your exported file (named exactly

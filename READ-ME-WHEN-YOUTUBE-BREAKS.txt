@@ -1,0 +1,88 @@
+==============================================================================
+  YouTube says "Sign in to confirm you're not a bot" again?
+  Your cookies.txt expired. Here's how to fix it. Takes ~3 minutes.
+==============================================================================
+
+WHY THIS HAPPENS
+----------------
+YouTube needs proof you're a logged-in human. We give it that with a
+"cookies.txt" file exported from a browser where you're signed in to YouTube.
+
+Google rotates its login sessions every few days/weeks, which quietly kills
+the old cookies.txt. When that happens, downloads start failing again with
+the "Sign in to confirm you're not a bot" error. The fix is always the same:
+EXPORT A FRESH cookies.txt. Nothing is broken — the cookies just got old.
+
+
+THE FIX (step by step)
+----------------------
+1. Open a PRIVATE / INCOGNITO window in your browser.
+      - Chrome/Edge:  Ctrl+Shift+N
+      - Firefox:      Ctrl+Shift+P
+   (Private window matters — see "WHY INCOGNITO" at the bottom.)
+
+2. Go to  youtube.com  and SIGN IN. Make sure your avatar shows in the
+   top-right corner. If you're not actually signed in, the export will be
+   useless (it'll have no login in it).
+
+3. With that YouTube tab still open, click your cookies-export extension and
+   choose Export / Save. Recommended extension:
+      "Get cookies.txt LOCALLY"   (Chrome/Edge)
+      "cookies.txt"               (Firefox)
+   Export the cookies for youtube.com.
+
+4. Save / rename the exported file to exactly:   cookies.txt
+   and put it in THIS folder (replace the old one):
+
+      C:\Users\jnlco\OneDrive\Documents\Projects\Media Downloader\cookies.txt
+
+5. CLOSE the incognito window right away (don't keep browsing in it).
+
+6. Restart the app (close it and run run.bat again) and try a download.
+
+
+VERIFY IT WORKED (optional but recommended)
+-------------------------------------------
+Open PowerShell in this folder and run this one line. It checks the new file
+actually contains a login:
+
+   .venv\Scripts\python.exe -c "d=open('cookies.txt',encoding='utf-8').read(); print('LOGGED IN - good to go' if any(k in d for k in ('__Secure-3PSID','__Secure-1PSID','LOGIN_INFO')) else 'STILL LOGGED OUT - re-export, you were not signed in')"
+
+   - "LOGGED IN - good to go"     -> you're done.
+   - "STILL LOGGED OUT ..."       -> you weren't actually signed in at step 2.
+                                     Redo it and make sure your avatar shows.
+
+
+IF IT STILL FAILS
+-----------------
+- Chrome/Edge exports on Windows sometimes come out logged-out even when you
+  ARE signed in (their cookie encryption). If that keeps happening, use
+  FIREFOX instead: sign in to YouTube in a Firefox private window and export
+  from there. Firefox is the most reliable on this machine.
+
+- A specific video that says "login required" / age-restricted / members-only
+  will ALWAYS need a logged-in cookies.txt — that's expected, not a bug.
+
+- If even fresh cookies fail on many videos, update the engines, then retry:
+     .venv\Scripts\python.exe -m pip install -U yt-dlp gallery-dl
+
+
+MAKE THE COOKIES LAST LONGER
+----------------------------
+The cookies live longest if you DON'T reuse that login for normal browsing.
+Best practice: use a private window (or a throwaway Google account) ONLY to
+export, then close it. Browsing YouTube normally in that same account makes
+Google rotate the session and expire your exported file sooner.
+
+
+WHY INCOGNITO?
+--------------
+A private window gives a fresh, isolated login session. Because you close it
+immediately after exporting, Google doesn't "rotate" (and invalidate) those
+cookies the way it would if you kept using that login in your everyday
+browser. Result: the exported cookies.txt stays valid much longer.
+
+------------------------------------------------------------------------------
+TL;DR: Incognito -> sign in to youtube.com -> export cookies -> save as
+cookies.txt in this folder -> close incognito -> restart the app.
+------------------------------------------------------------------------------
