@@ -85,6 +85,7 @@ async function fetchInfo() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Could not read that link.");
 
+    msg.className = "msg";   // drop the "loading" spinner now that we're done
     msg.textContent = "";
     renderPreview(data);
   } catch (e) {
