@@ -30,6 +30,15 @@ Double-click **`run.bat`**. It creates a virtual environment, installs
 dependencies the first time, then launches the app and opens your browser at
 <http://127.0.0.1:5005>.
 
+## Quick start (macOS)
+
+Double-click **`run.command`** (first time: right-click → Open if macOS blocks
+it). It builds the virtual environment with a modern Python (via `uv` if
+installed, since the system `python3` is 3.9 and too old for current yt-dlp),
+installs dependencies, and launches the app. **Browse…** uses the native macOS
+folder/file panel. For YouTube, install Deno (`brew install deno`) and build the
+PO-token server the same way as below; the app finds both automatically.
+
 ## Manual start (any OS)
 
 ```bash

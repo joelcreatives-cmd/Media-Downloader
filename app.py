@@ -140,6 +140,13 @@ def ensure_deno():
             os.path.join(local, "Microsoft", "WinGet", "Packages", "DenoLand.Deno*", "deno.exe")
         )
     candidates.append(os.path.join(os.path.expanduser("~"), ".deno", "bin", "deno.exe"))
+    # macOS / Linux: the official installer and Homebrew locations. Matters when
+    # the app is launched from Finder, whose PATH skips the shell profile.
+    candidates += [
+        os.path.join(os.path.expanduser("~"), ".deno", "bin", "deno"),
+        "/opt/homebrew/bin/deno",
+        "/usr/local/bin/deno",
+    ]
     for exe in candidates:
         if os.path.isfile(exe):
             os.environ["PATH"] = os.path.dirname(exe) + os.pathsep + os.environ.get("PATH", "")
@@ -287,6 +294,26 @@ def within_known(target):
     return False
 
 
+def _mac_choose(script, env=None):
+    """Run an AppleScript chooser in its own process and return the POSIX path.
+
+    On macOS Tk must own the main thread, so a tkinter dialog opened from a
+    Flask worker thread just hangs. osascript runs the native panel in a
+    separate process instead, like the PowerShell route on Windows. Cancel
+    returns None.
+    """
+    full = (
+        'tell application "System Events" to activate\n'
+        f"set p to POSIX path of ({script})\n"
+        "return p"
+    )
+    proc = subprocess.run(["osascript", "-e", full], capture_output=True, text=True, env=env)
+    path = (proc.stdout or "").strip()
+    if len(path) > 1:
+        path = path.rstrip("/")
+    return path or None
+
+
 def pick_folder(initial):
     """Show a native folder picker on the server machine; return the path or None.
 
@@ -313,6 +340,14 @@ def pick_folder(initial):
             env=env,
         )
         return (proc.stdout or "").strip() or None
+
+    if sys.platform == "darwin":
+        start = initial if initial and os.path.isdir(initial) else DOWNLOAD_DIR
+        return _mac_choose(
+            'choose folder with prompt "Choose a download folder" '
+            "default location (POSIX file (system attribute \"YTDL_INITDIR\"))",
+            env=dict(os.environ, YTDL_INITDIR=start),
+        )
 
     if TK_AVAILABLE:
         result = {}
@@ -353,6 +388,9 @@ def pick_file():
             text=True,
         )
         return (proc.stdout or "").strip() or None
+
+    if sys.platform == "darwin":
+        return _mac_choose('choose file with prompt "Select your cookies.txt file"')
 
     if TK_AVAILABLE:
         result = {}
@@ -464,6 +502,12 @@ def build_opts(job_id, params, base_dir):
             h = int(quality)
             opts["format"] = f"bv*[height<={h}]+ba/b[height<={h}]/b[height<={h}]/b"
         opts["merge_output_format"] = "mp4"
+        # Keep the highest resolution allowed, but at that resolution prefer
+        # H.264 video and AAC audio. yt-dlp's default favours VP9/AV1 + Opus,
+        # which merge into an .mp4 that Apple devices (QuickTime, Photos,
+        # iPhone) can't open. YouTube only serves H.264 up to 1080p, so 1440p
+        # and 4K still come down as VP9/AV1.
+        opts["format_sort"] = ["res", "vcodec:h264", "acodec:aac"]
 
     if want_subs:
         opts["writesubtitles"] = True

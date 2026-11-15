@@ -305,7 +305,7 @@ function finishUp(d) {
     const btn = document.createElement("button");
     btn.className = "reveal";
     btn.textContent = "Reveal";
-    btn.title = "Show this file in Explorer";
+    btn.title = "Show this file in its folder";
     btn.addEventListener("click", () => revealFile(full, btn));
 
     li.appendChild(span);
